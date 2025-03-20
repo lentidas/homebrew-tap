@@ -5,21 +5,21 @@
 class HledgerPriceTracker < Formula
   desc "CLI tool to get market prices for commodities"
   homepage "https://github.com/lentidas/hledger-price-tracker"
-  version "0.1.3"
+  version "0.1.4"
   license "GPL-3.0"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.3/hledger-price-tracker_Darwin_x86_64.tar.gz"
-      sha256 "9474f5c0ec3354e34d59621f73c561a6eed16fc595ad498ab74a7219ab93b0da"
+      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.4/hledger-price-tracker_Darwin_x86_64.tar.gz"
+      sha256 "36cf4fb335c52baef48b2a010422b3de23323f05f2855ea459673fe86cac7817"
 
       def install
         bin.install "hledger-price-tracker"
       end
     end
     if Hardware::CPU.arm?
-      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.3/hledger-price-tracker_Darwin_arm64.tar.gz"
-      sha256 "65a2306b6723b5c7c6938363fd3c0e1b4bb953ed511153087e7e99bb71364899"
+      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.4/hledger-price-tracker_Darwin_arm64.tar.gz"
+      sha256 "a151d664ea1c871c1028e537556f60624594e1a028eb391370fa4336a6a9f0e0"
 
       def install
         bin.install "hledger-price-tracker"
@@ -30,8 +30,8 @@ class HledgerPriceTracker < Formula
   on_linux do
     if Hardware::CPU.intel?
       if Hardware::CPU.is_64_bit?
-        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.3/hledger-price-tracker_Linux_x86_64.tar.gz"
-        sha256 "450c4cb444054e0797845fcde2349a514ee91c7ab4563d15939c3107f45a8e30"
+        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.4/hledger-price-tracker_Linux_x86_64.tar.gz"
+        sha256 "0a4d13b60220cb40cfadf0ac1cbb89285b88df0e6a8d846fa10685f1850a463d"
 
         def install
           bin.install "hledger-price-tracker"
@@ -40,8 +40,8 @@ class HledgerPriceTracker < Formula
     end
     if Hardware::CPU.arm?
       if Hardware::CPU.is_64_bit?
-        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.3/hledger-price-tracker_Linux_arm64.tar.gz"
-        sha256 "02a251e6eebcf88519ce6ca7d34b9baa39d885ffa7c5a72f5d688fc4086ac061"
+        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.4/hledger-price-tracker_Linux_arm64.tar.gz"
+        sha256 "0e7569625aa8e82809029665641f4035394ca538d1ba92c90d7c97285b2c3740"
 
         def install
           bin.install "hledger-price-tracker"
