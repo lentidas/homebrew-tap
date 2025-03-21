@@ -34,8 +34,8 @@ class HledgerPriceTracker < Formula
   end
 
   on_linux do
-    if Hardware::CPU.intel?
-      if Hardware::CPU.is_64_bit?
+    if Hardware::CPU.is_64_bit?
+      if Hardware::CPU.intel?
         url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.4/hledger-price-tracker_Linux_x86_64.tar.gz"
         sha256 "0a4d13b60220cb40cfadf0ac1cbb89285b88df0e6a8d846fa10685f1850a463d"
 
@@ -43,9 +43,7 @@ class HledgerPriceTracker < Formula
           bin.install "hledger-price-tracker"
         end
       end
-    end
-    if Hardware::CPU.arm?
-      if Hardware::CPU.is_64_bit?
+      if Hardware::CPU.arm?
         url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.4/hledger-price-tracker_Linux_arm64.tar.gz"
         sha256 "0e7569625aa8e82809029665641f4035394ca538d1ba92c90d7c97285b2c3740"
 
