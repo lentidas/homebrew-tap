@@ -7,12 +7,6 @@ class HledgerPriceTracker < Formula
   version "0.1.6"
   license "GPL-3.0"
 
-  bottle do
-    root_url "https://github.com/lentidas/homebrew-tap/releases/download/hledger-price-tracker-0.1.4"
-    sha256 cellar: :any_skip_relocation, arm64_sequoia: "1cc60494a0b5f6dc25aa07f080ff4a81855b7d6ef673282b73f32f717306b1b5"
-    sha256 cellar: :any_skip_relocation, x86_64_linux:  "5adba29b6c84ad69bf2b0b50a6fae31008ee8f2b4949f369fffa57e250931871"
-  end
-
   on_macos do
     if Hardware::CPU.intel?
       url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.6/hledger-price-tracker_Darwin_x86_64.tar.gz"
