@@ -4,7 +4,7 @@
 class HledgerPriceTracker < Formula
   desc "CLI tool to get market prices for commodities"
   homepage "https://github.com/lentidas/hledger-price-tracker"
-  version "0.1.4"
+  version "0.1.6"
   license "GPL-3.0"
 
   bottle do
@@ -15,24 +15,24 @@ class HledgerPriceTracker < Formula
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.4/hledger-price-tracker_Darwin_x86_64.tar.gz"
-      sha256 "36cf4fb335c52baef48b2a010422b3de23323f05f2855ea459673fe86cac7817"
+      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.6/hledger-price-tracker_Darwin_x86_64.tar.gz"
+      sha256 "16f1a05627b9ff2bc952944544a119aaa86e6c2f7508dc05052a4a2cec83f77f"
     end
     if Hardware::CPU.arm?
-      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.4/hledger-price-tracker_Darwin_arm64.tar.gz"
-      sha256 "a151d664ea1c871c1028e537556f60624594e1a028eb391370fa4336a6a9f0e0"
+      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.6/hledger-price-tracker_Darwin_arm64.tar.gz"
+      sha256 "5015b8f702835fbe7dbf6a9f909401967f03e8ca6cb259a47986809d51784861"
     end
   end
 
   on_linux do
     if Hardware::CPU.is_64_bit?
       if Hardware::CPU.intel?
-        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.4/hledger-price-tracker_Linux_x86_64.tar.gz"
-        sha256 "0a4d13b60220cb40cfadf0ac1cbb89285b88df0e6a8d846fa10685f1850a463d"
+        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.6/hledger-price-tracker_Linux_x86_64.tar.gz"
+        sha256 "5ab5759da6654078fa10dbb0e807ccb17b446b4494e7ea08317d23e83c96675c"
       end
       if Hardware::CPU.arm?
-        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.4/hledger-price-tracker_Linux_arm64.tar.gz"
-        sha256 "0e7569625aa8e82809029665641f4035394ca538d1ba92c90d7c97285b2c3740"
+        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.6/hledger-price-tracker_Linux_arm64.tar.gz"
+        sha256 "40b1e4cf68bffccde480754610128c88c9e858861ab840fa35ab110355937935"
       end
     end
   end
