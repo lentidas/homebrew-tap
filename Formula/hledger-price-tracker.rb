@@ -4,29 +4,29 @@
 class HledgerPriceTracker < Formula
   desc "CLI tool to get market prices for commodities"
   homepage "https://github.com/lentidas/hledger-price-tracker"
-  version "0.1.7"
+  version "0.1.8"
   license "GPL-3.0"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.7/hledger-price-tracker_Darwin_x86_64.tar.gz"
-      sha256 "ebca437e9ec32752d77cc54129d84f710e41a75e3a805f02e301039509aa7cdf"
+      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.8/hledger-price-tracker_Darwin_x86_64.tar.gz"
+      sha256 "4b78209a9dcb12555158e2a164b118a408199e8b778a94045b815d3f94ae8c1d"
     end
     if Hardware::CPU.arm?
-      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.7/hledger-price-tracker_Darwin_arm64.tar.gz"
-      sha256 "7dbfeca2f168cf83c03392980823613330ce8bc8e943f4a5b01fcb3f7ef22bf0"
+      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.8/hledger-price-tracker_Darwin_arm64.tar.gz"
+      sha256 "86d7ab68a61ebc4f746fd6f4440b1a52c5f4fc8c90b0c570c098751c88fbdc06"
     end
   end
 
   on_linux do
     if Hardware::CPU.is_64_bit?
       if Hardware::CPU.intel?
-        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.7/hledger-price-tracker_Linux_x86_64.tar.gz"
-        sha256 "83a5941b379832b70278cb9699b3e198ea43cd740bcf70b6cf386335b92d5faa"
+        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.8/hledger-price-tracker_Linux_x86_64.tar.gz"
+        sha256 "a148ae90993d1c69563bbea70937202641f02f8dbf69dcbe59079d2df8ffdc9e"
       end
       if Hardware::CPU.arm?
-        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.7/hledger-price-tracker_Linux_arm64.tar.gz"
-        sha256 "810666cfbdf638f4c7276e4fe4744f8bcfc9f43ffa882da4400be8ec1ea3e39e"
+        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.8/hledger-price-tracker_Linux_arm64.tar.gz"
+        sha256 "d5540eb21f1fe78a73ac38adae3a223b62b16e30e9c492f4d83e64d4529c409d"
       end
     end
   end
