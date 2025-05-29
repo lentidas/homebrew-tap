@@ -2,9 +2,9 @@
 # frozen_string_literal: true
 
 require "formula"
-require "../github-private-repository.rb"
+require_relative "../github-private-repository.rb"
 
-class HledgerCSVParser < Formula
+class HledgerCsvParser < Formula
   desc "CLI tool to get market prices for commodities"
   homepage "https://github.com/lentidas/hledger-csv-parser"
   version "0.1.0"
