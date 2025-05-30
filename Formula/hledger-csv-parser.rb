@@ -7,29 +7,29 @@ require_relative "../github-private-repository.rb"
 class HledgerCsvParser < Formula
   desc "CLI tool to get market prices for commodities"
   homepage "https://github.com/lentidas/hledger-csv-parser"
-  version "0.1.0"
+  version "0.1.1"
   license "GPL-3.0"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/lentidas/hledger-csv-parser/releases/download/v0.1.0/hledger-csv-parser_Darwin_x86_64.tar.gz", :using => GitHubPrivateRepositoryReleaseDownloadStrategy 
-      sha256 "dc90ec9b3528f92c9ee2c91eed028ac9ccc6688acaed700cfd43a53bedcc9a9a"
+      url "https://github.com/lentidas/hledger-csv-parser/releases/download/v0.1.1/hledger-csv-parser_Darwin_x86_64.tar.gz", :using => GitHubPrivateRepositoryReleaseDownloadStrategy 
+      sha256 "bc1ee8286953bc4b887c0c44fa785c1b3b68893470974462db9be5065253e0cb"
     end
     if Hardware::CPU.arm?
-      url "https://github.com/lentidas/hledger-csv-parser/releases/download/v0.1.0/hledger-csv-parser_Darwin_arm64.tar.gz", :using => GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "5d3f6b3fd053e20dffd25fe4c82abab588b177bcfea964af72ac312c86154894"
+      url "https://github.com/lentidas/hledger-csv-parser/releases/download/v0.1.1/hledger-csv-parser_Darwin_arm64.tar.gz", :using => GitHubPrivateRepositoryReleaseDownloadStrategy
+      sha256 "3d87f0d6a7479a77a8f461210fe079f69009bf681603be5c3f5c25d87d0648b3"
     end
   end
 
   on_linux do
     if Hardware::CPU.is_64_bit?
       if Hardware::CPU.intel?
-        url "https://github.com/lentidas/hledger-csv-parser/releases/download/v0.1.0/hledger-csv-parser_Linux_x86_64.tar.gz", :using => GitHubPrivateRepositoryReleaseDownloadStrategy
-        sha256 "0f524df55d8c08bc088b06f014258b1a54b6aabc40c8e20a253f580096e71c4c"
+        url "https://github.com/lentidas/hledger-csv-parser/releases/download/v0.1.1/hledger-csv-parser_Linux_x86_64.tar.gz", :using => GitHubPrivateRepositoryReleaseDownloadStrategy
+        sha256 "362d2f38f9b38a0a71a67f00455bd086e195b6f627da05499905aa675b5990d8"
       end
       if Hardware::CPU.arm?
-        url "https://github.com/lentidas/hledger-csv-parser/releases/download/v0.1.0/hledger-csv-parser_Linux_arm64.tar.gz", :using => GitHubPrivateRepositoryReleaseDownloadStrategy
-        sha256 "9c1111784a213037c12f0500ee373ab189c2d304135dec10ce2bc40fb43135f1"
+        url "https://github.com/lentidas/hledger-csv-parser/releases/download/v0.1.1/hledger-csv-parser_Linux_arm64.tar.gz", :using => GitHubPrivateRepositoryReleaseDownloadStrategy
+        sha256 "e92b760361be5931f697882e7739d0b45ae2b7fc884f668c913e08cc939c6130"
       end
     end
   end
