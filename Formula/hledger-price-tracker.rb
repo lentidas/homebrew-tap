@@ -4,29 +4,29 @@
 class HledgerPriceTracker < Formula
   desc "CLI tool to get market prices for commodities"
   homepage "https://github.com/lentidas/hledger-price-tracker"
-  version "0.1.9"
+  version "0.1.10"
   license "GPL-3.0"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.9/hledger-price-tracker_Darwin_x86_64.tar.gz"
-      sha256 "47061b671d58bb7deecf003ae1e0a75fa02dc21cc80292d1980510e16865a841"
+      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.10/hledger-price-tracker_Darwin_x86_64.tar.gz"
+      sha256 "5708f81415e6f37d89edb07187e986db400f66431df71727762a9a61c0f7eb35"
     end
     if Hardware::CPU.arm?
-      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.9/hledger-price-tracker_Darwin_arm64.tar.gz"
-      sha256 "4a2f71ffc951b0649e5de6769289e297a06a32c9e324e4b40ab298c551a613bf"
+      url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.10/hledger-price-tracker_Darwin_arm64.tar.gz"
+      sha256 "83a818b7a95fec289daccaa26c3ef56cf0d18e33abe5c6adabc389f79acd703b"
     end
   end
 
   on_linux do
     if Hardware::CPU.is_64_bit?
       if Hardware::CPU.intel?
-        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.9/hledger-price-tracker_Linux_x86_64.tar.gz"
-        sha256 "4c6cb6263f7e472d56598814bf686fb0b22301dafadc41256c20a5f5f800172a"
+        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.10/hledger-price-tracker_Linux_x86_64.tar.gz"
+        sha256 "307d9acb400745731dfe291762c5957b0cf4fa8324e4283628ab1a68dd642242"
       end
       if Hardware::CPU.arm?
-        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.9/hledger-price-tracker_Linux_arm64.tar.gz"
-        sha256 "a9401f33ed8d0a5597c916d0eabe16a85af4ce72e21265f2b0e0f9acf767a2e8"
+        url "https://github.com/lentidas/hledger-price-tracker/releases/download/v0.1.10/hledger-price-tracker_Linux_arm64.tar.gz"
+        sha256 "4817f29f2abd7847b0d9d42c2c0915c365b1704318e2decd86d7800c017e99d6"
       end
     end
   end
