@@ -33,7 +33,6 @@ jobs:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-          repositories: ${{ inputs.source_repo || format('lentidas/{0}', inputs.package_name) }}
           
       - name: Set source repository
         id: set-repo
@@ -139,32 +138,32 @@ jobs:
           sed -i 's/version "[^"]*"/version "${{ inputs.version }}"/' "$FORMULA_FILE"
           
           # Update URLs and checksums for Darwin x86_64
-          sed -i '/on_macos do/,/end/ {
-            /if Hardware::CPU.intel?/,/end/ {
+          sed -i '/on_macos do/,/^  end/ {
+            /if Hardware::CPU.intel?/,/^    end/ {
               s|releases/download/v[^/]*/|releases/download/v${{ inputs.version }}/|
               /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.checksums.outputs.darwin_x86_64 }}"/
             }
           }' "$FORMULA_FILE"
           
           # Update URLs and checksums for Darwin arm64
-          sed -i '/on_macos do/,/end/ {
-            /if Hardware::CPU.arm?/,/end/ {
+          sed -i '/on_macos do/,/^  end/ {
+            /if Hardware::CPU.arm?/,/^    end/ {
               s|releases/download/v[^/]*/|releases/download/v${{ inputs.version }}/|
               /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.checksums.outputs.darwin_arm64 }}"/
             }
           }' "$FORMULA_FILE"
           
           # Update URLs and checksums for Linux x86_64
-          sed -i '/on_linux do/,/end/ {
-            /if Hardware::CPU.intel?/,/end/ {
+          sed -i '/on_linux do/,/^  end/ {
+            /if Hardware::CPU.intel?/,/^      end/ {
               s|releases/download/v[^/]*/|releases/download/v${{ inputs.version }}/|
               /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.checksums.outputs.linux_x86_64 }}"/
             }
           }' "$FORMULA_FILE"
           
           # Update URLs and checksums for Linux arm64
-          sed -i '/on_linux do/,/end/ {
-            /if Hardware::CPU.arm?/,/end/ {
+          sed -i '/on_linux do/,/^  end/ {
+            /if Hardware::CPU.arm?/,/^      end/ {
               s|releases/download/v[^/]*/|releases/download/v${{ inputs.version }}/|
               /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.checksums.outputs.linux_arm64 }}"/
             }
