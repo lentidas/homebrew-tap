@@ -1,0 +1,185 @@
+name: Bump Formula Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_name:
+        description: 'Package name (formula name without .rb extension)'
+        required: true
+        type: string
+      version:
+        description: 'New version number (without v prefix)'
+        required: true
+        type: string
+      source_repo:
+        description: 'Source repository in owner/repo format (defaults to lentidas/PACKAGE_NAME)'
+        required: false
+        type: string
+
+jobs:
+  bump-formula:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Generate GitHub App token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ inputs.source_repo || format('lentidas/{0}', inputs.package_name) }}
+          
+      - name: Set source repository
+        id: set-repo
+        run: |
+          if [ -n "${{ inputs.source_repo }}" ]; then
+            echo "repo=${{ inputs.source_repo }}" >> $GITHUB_OUTPUT
+          else
+            echo "repo=lentidas/${{ inputs.package_name }}" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Download checksums artifact
+        id: download-checksums
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          # Try to download checksums.txt from the release
+          gh release download "v${{ inputs.version }}" \
+            --repo "${{ steps.set-repo.outputs.repo }}" \
+            --pattern "checksums.txt" \
+            --dir /tmp || exit 1
+          
+          if [ -f /tmp/checksums.txt ]; then
+            echo "found=true" >> $GITHUB_OUTPUT
+            echo "Checksums file downloaded successfully"
+            cat /tmp/checksums.txt
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "Checksums file not found"
+          fi
+          
+      - name: Extract checksums from artifact
+        id: extract-checksums-artifact
+        if: steps.download-checksums.outputs.found == 'true'
+        run: |
+          # Parse checksums.txt file
+          darwin_x86_64=$(grep "${{ inputs.package_name }}_Darwin_x86_64.tar.gz" /tmp/checksums.txt | awk '{print $1}')
+          darwin_arm64=$(grep "${{ inputs.package_name }}_Darwin_arm64.tar.gz" /tmp/checksums.txt | awk '{print $1}')
+          linux_x86_64=$(grep "${{ inputs.package_name }}_Linux_x86_64.tar.gz" /tmp/checksums.txt | awk '{print $1}')
+          linux_arm64=$(grep "${{ inputs.package_name }}_Linux_arm64.tar.gz" /tmp/checksums.txt | awk '{print $1}')
+          
+          echo "darwin_x86_64=$darwin_x86_64" >> $GITHUB_OUTPUT
+          echo "darwin_arm64=$darwin_arm64" >> $GITHUB_OUTPUT
+          echo "linux_x86_64=$linux_x86_64" >> $GITHUB_OUTPUT
+          echo "linux_arm64=$linux_arm64" >> $GITHUB_OUTPUT
+          
+      - name: Compute checksums from binaries
+        id: compute-checksums
+        if: steps.download-checksums.outputs.found != 'true'
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          # Download release assets and compute checksums
+          cd /tmp
+          
+          # Download all architecture binaries
+          gh release download "v${{ inputs.version }}" \
+            --repo "${{ steps.set-repo.outputs.repo }}" \
+            --pattern "${{ inputs.package_name }}_Darwin_x86_64.tar.gz" \
+            --pattern "${{ inputs.package_name }}_Darwin_arm64.tar.gz" \
+            --pattern "${{ inputs.package_name }}_Linux_x86_64.tar.gz" \
+            --pattern "${{ inputs.package_name }}_Linux_arm64.tar.gz"
+          
+          # Compute SHA256 checksums
+          darwin_x86_64=$(sha256sum "${{ inputs.package_name }}_Darwin_x86_64.tar.gz" | awk '{print $1}')
+          darwin_arm64=$(sha256sum "${{ inputs.package_name }}_Darwin_arm64.tar.gz" | awk '{print $1}')
+          linux_x86_64=$(sha256sum "${{ inputs.package_name }}_Linux_x86_64.tar.gz" | awk '{print $1}')
+          linux_arm64=$(sha256sum "${{ inputs.package_name }}_Linux_arm64.tar.gz" | awk '{print $1}')
+          
+          echo "darwin_x86_64=$darwin_x86_64" >> $GITHUB_OUTPUT
+          echo "darwin_arm64=$darwin_arm64" >> $GITHUB_OUTPUT
+          echo "linux_x86_64=$linux_x86_64" >> $GITHUB_OUTPUT
+          echo "linux_arm64=$linux_arm64" >> $GITHUB_OUTPUT
+          
+      - name: Set checksums
+        id: checksums
+        run: |
+          if [ "${{ steps.download-checksums.outputs.found }}" == "true" ]; then
+            echo "darwin_x86_64=${{ steps.extract-checksums-artifact.outputs.darwin_x86_64 }}" >> $GITHUB_OUTPUT
+            echo "darwin_arm64=${{ steps.extract-checksums-artifact.outputs.darwin_arm64 }}" >> $GITHUB_OUTPUT
+            echo "linux_x86_64=${{ steps.extract-checksums-artifact.outputs.linux_x86_64 }}" >> $GITHUB_OUTPUT
+            echo "linux_arm64=${{ steps.extract-checksums-artifact.outputs.linux_arm64 }}" >> $GITHUB_OUTPUT
+          else
+            echo "darwin_x86_64=${{ steps.compute-checksums.outputs.darwin_x86_64 }}" >> $GITHUB_OUTPUT
+            echo "darwin_arm64=${{ steps.compute-checksums.outputs.darwin_arm64 }}" >> $GITHUB_OUTPUT
+            echo "linux_x86_64=${{ steps.compute-checksums.outputs.linux_x86_64 }}" >> $GITHUB_OUTPUT
+            echo "linux_arm64=${{ steps.compute-checksums.outputs.linux_arm64 }}" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Update formula
+        run: |
+          FORMULA_FILE="Formula/${{ inputs.package_name }}.rb"
+          
+          if [ ! -f "$FORMULA_FILE" ]; then
+            echo "Error: Formula file $FORMULA_FILE not found"
+            exit 1
+          fi
+          
+          # Create a backup
+          cp "$FORMULA_FILE" "${FORMULA_FILE}.bak"
+          
+          # Update version
+          sed -i 's/version "[^"]*"/version "${{ inputs.version }}"/' "$FORMULA_FILE"
+          
+          # Update URLs and checksums for Darwin x86_64
+          sed -i '/on_macos do/,/end/ {
+            /if Hardware::CPU.intel?/,/end/ {
+              s|releases/download/v[^/]*/|releases/download/v${{ inputs.version }}/|
+              /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.checksums.outputs.darwin_x86_64 }}"/
+            }
+          }' "$FORMULA_FILE"
+          
+          # Update URLs and checksums for Darwin arm64
+          sed -i '/on_macos do/,/end/ {
+            /if Hardware::CPU.arm?/,/end/ {
+              s|releases/download/v[^/]*/|releases/download/v${{ inputs.version }}/|
+              /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.checksums.outputs.darwin_arm64 }}"/
+            }
+          }' "$FORMULA_FILE"
+          
+          # Update URLs and checksums for Linux x86_64
+          sed -i '/on_linux do/,/end/ {
+            /if Hardware::CPU.intel?/,/end/ {
+              s|releases/download/v[^/]*/|releases/download/v${{ inputs.version }}/|
+              /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.checksums.outputs.linux_x86_64 }}"/
+            }
+          }' "$FORMULA_FILE"
+          
+          # Update URLs and checksums for Linux arm64
+          sed -i '/on_linux do/,/end/ {
+            /if Hardware::CPU.arm?/,/end/ {
+              s|releases/download/v[^/]*/|releases/download/v${{ inputs.version }}/|
+              /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.checksums.outputs.linux_arm64 }}"/
+            }
+          }' "$FORMULA_FILE"
+          
+          # Show the diff
+          echo "Formula changes:"
+          diff -u "${FORMULA_FILE}.bak" "$FORMULA_FILE" || true
+          rm "${FORMULA_FILE}.bak"
+          
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add "Formula/${{ inputs.package_name }}.rb"
+          git commit -m "chore: bump ${{ inputs.package_name }} to v${{ inputs.version }}"
+          git push
