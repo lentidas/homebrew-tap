@@ -28,6 +28,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Prepare inputs
+        id: prepare-inputs
+        run: |
+          # Detect trigger type and set inputs accordingly
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            echo "Triggered by repository_dispatch"
+            echo "package_name=${{ github.event.client_payload.package_name }}" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+            echo "source_repo=${{ github.event.client_payload.source_repo }}" >> $GITHUB_OUTPUT
+          else
+            echo "Triggered by workflow_dispatch"
+            echo "package_name=${{ inputs.package_name }}" >> $GITHUB_OUTPUT
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "source_repo=${{ inputs.source_repo }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Generate GitHub App token
         id: generate-token
         uses: actions/create-github-app-token@v1
@@ -39,10 +55,10 @@ jobs:
       - name: Set source repository
         id: set-repo
         run: |
-          if [ -n "${{ inputs.source_repo }}" ]; then
-            echo "repo=${{ inputs.source_repo }}" >> $GITHUB_OUTPUT
+          if [ -n "${{ steps.prepare-inputs.outputs.source_repo }}" ]; then
+            echo "repo=${{ steps.prepare-inputs.outputs.source_repo }}" >> $GITHUB_OUTPUT
           else
-            echo "repo=lentidas/${{ inputs.package_name }}" >> $GITHUB_OUTPUT
+            echo "repo=lentidas/${{ steps.prepare-inputs.outputs.package_name }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Compute checksums from binaries
@@ -54,18 +70,18 @@ jobs:
           cd /tmp
           
           # Download all architecture binaries
-          gh release download "v${{ inputs.version }}" \
+          gh release download "v${{ steps.prepare-inputs.outputs.version }}" \
             --repo "${{ steps.set-repo.outputs.repo }}" \
-            --pattern "${{ inputs.package_name }}_Darwin_x86_64.tar.gz" \
-            --pattern "${{ inputs.package_name }}_Darwin_arm64.tar.gz" \
-            --pattern "${{ inputs.package_name }}_Linux_x86_64.tar.gz" \
-            --pattern "${{ inputs.package_name }}_Linux_arm64.tar.gz"
+            --pattern "${{ steps.prepare-inputs.outputs.package_name }}_Darwin_x86_64.tar.gz" \
+            --pattern "${{ steps.prepare-inputs.outputs.package_name }}_Darwin_arm64.tar.gz" \
+            --pattern "${{ steps.prepare-inputs.outputs.package_name }}_Linux_x86_64.tar.gz" \
+            --pattern "${{ steps.prepare-inputs.outputs.package_name }}_Linux_arm64.tar.gz"
           
           # Compute SHA256 checksums
-          darwin_x86_64=$(sha256sum "${{ inputs.package_name }}_Darwin_x86_64.tar.gz" | awk '{print $1}')
-          darwin_arm64=$(sha256sum "${{ inputs.package_name }}_Darwin_arm64.tar.gz" | awk '{print $1}')
-          linux_x86_64=$(sha256sum "${{ inputs.package_name }}_Linux_x86_64.tar.gz" | awk '{print $1}')
-          linux_arm64=$(sha256sum "${{ inputs.package_name }}_Linux_arm64.tar.gz" | awk '{print $1}')
+          darwin_x86_64=$(sha256sum "${{ steps.prepare-inputs.outputs.package_name }}_Darwin_x86_64.tar.gz" | awk '{print $1}')
+          darwin_arm64=$(sha256sum "${{ steps.prepare-inputs.outputs.package_name }}_Darwin_arm64.tar.gz" | awk '{print $1}')
+          linux_x86_64=$(sha256sum "${{ steps.prepare-inputs.outputs.package_name }}_Linux_x86_64.tar.gz" | awk '{print $1}')
+          linux_arm64=$(sha256sum "${{ steps.prepare-inputs.outputs.package_name }}_Linux_arm64.tar.gz" | awk '{print $1}')
           
           echo "darwin_x86_64=$darwin_x86_64" >> $GITHUB_OUTPUT
           echo "darwin_arm64=$darwin_arm64" >> $GITHUB_OUTPUT
@@ -74,7 +90,7 @@ jobs:
 
       - name: Update Homebrew formula
         run: |
-          FORMULA_FILE="Formula/${{ inputs.package_name }}.rb"
+          FORMULA_FILE="Formula/${{ steps.prepare-inputs.outputs.package_name }}.rb"
           
           if [ ! -f "$FORMULA_FILE" ]; then
             echo "Error: Formula file $FORMULA_FILE not found"
@@ -85,12 +101,12 @@ jobs:
           cp "$FORMULA_FILE" "${FORMULA_FILE}.bak"
           
           # Update version
-          sed -i 's/version "[^"]*"/version "${{ inputs.version }}"/' "$FORMULA_FILE"
+          sed -i 's/version "[^"]*"/version "${{ steps.prepare-inputs.outputs.version }}"/' "$FORMULA_FILE"
           
           # Update URLs and checksums for Darwin x86_64 package
           sed -i '/on_macos do/,/^  end/ {
             /if Hardware::CPU.intel?/,/^    end/ {
-              s|releases/download/v[^/]*/|releases/download/v${{ inputs.version }}/|
+              s|releases/download/v[^/]*/|releases/download/v${{ steps.prepare-inputs.outputs.version }}/|
               /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.compute-checksums.outputs.darwin_x86_64 }}"/
             }
           }' "$FORMULA_FILE"
@@ -98,7 +114,7 @@ jobs:
           # Update URLs and checksums for Darwin arm64 package
           sed -i '/on_macos do/,/^  end/ {
             /if Hardware::CPU.arm?/,/^    end/ {
-              s|releases/download/v[^/]*/|releases/download/v${{ inputs.version }}/|
+              s|releases/download/v[^/]*/|releases/download/v${{ steps.prepare-inputs.outputs.version }}/|
               /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.compute-checksums.outputs.darwin_arm64 }}"/
             }
           }' "$FORMULA_FILE"
@@ -106,7 +122,7 @@ jobs:
           # Update URLs and checksums for Linux x86_64 package
           sed -i '/on_linux do/,/^  end/ {
             /if Hardware::CPU.intel?/,/^      end/ {
-              s|releases/download/v[^/]*/|releases/download/v${{ inputs.version }}/|
+              s|releases/download/v[^/]*/|releases/download/v${{ steps.prepare-inputs.outputs.version }}/|
               /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.compute-checksums.outputs.linux_x86_64 }}"/
             }
           }' "$FORMULA_FILE"
@@ -114,7 +130,7 @@ jobs:
           # Update URLs and checksums for Linux arm64 package
           sed -i '/on_linux do/,/^  end/ {
             /if Hardware::CPU.arm?/,/^      end/ {
-              s|releases/download/v[^/]*/|releases/download/v${{ inputs.version }}/|
+              s|releases/download/v[^/]*/|releases/download/v${{ steps.prepare-inputs.outputs.version }}/|
               /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.compute-checksums.outputs.linux_arm64 }}"/
             }
           }' "$FORMULA_FILE"
@@ -129,6 +145,6 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          git add "Formula/${{ inputs.package_name }}.rb"
-          git commit -m "chore: bump ${{ inputs.package_name }} to v${{ inputs.version }}"
+          git add "Formula/${{ steps.prepare-inputs.outputs.package_name }}.rb"
+          git commit -m "chore: bump ${{ steps.prepare-inputs.outputs.package_name }} to v${{ steps.prepare-inputs.outputs.version }}"
           git push
