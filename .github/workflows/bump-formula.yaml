@@ -56,6 +56,7 @@ jobs:
     - name: Set source repository
       id: set-repo
       run: |
+        # Set source repository, defaulting to lentidas/PACKAGE_NAME if not provided.
         if [ -n "${{ steps.trigger_inputs.outputs.source_repo }}" ]; then
           echo "repo=${{ steps.trigger_inputs.outputs.source_repo }}" >> $GITHUB_OUTPUT
         else
@@ -67,6 +68,8 @@ jobs:
       env:
         GH_TOKEN: ${{ steps.app_token.outputs.token }}
       run: |
+        # Compute checksums from binaries in the release assets.
+
         # Download release assets and compute checksums
         cd /tmp
         
@@ -91,6 +94,8 @@ jobs:
 
     - name: Update Homebrew formula
       run: |
+        # Update the Homebrew formula with the new version and checksums.
+
         FORMULA_FILE="Formula/${{ steps.trigger_inputs.outputs.package_name }}.rb"
         
         if [ ! -f "$FORMULA_FILE" ]; then
@@ -104,7 +109,7 @@ jobs:
         # Update version
         sed -i 's/version "[^"]*"/version "${{ steps.trigger_inputs.outputs.version }}"/' "$FORMULA_FILE"
         
-        # Update URLs and checksums for Darwin x86_64 package
+        # Update URLs and checksums for Darwin x86_64 package.
         sed -i '/on_macos do/,/^  end/ {
           /if Hardware::CPU.intel?/,/^    end/ {
             s|releases/download/v[^/]*/|releases/download/v${{ steps.trigger_inputs.outputs.version }}/|
@@ -112,7 +117,7 @@ jobs:
           }
         }' "$FORMULA_FILE"
         
-        # Update URLs and checksums for Darwin arm64 package
+        # Update URLs and checksums for Darwin arm64 package.
         sed -i '/on_macos do/,/^  end/ {
           /if Hardware::CPU.arm?/,/^    end/ {
             s|releases/download/v[^/]*/|releases/download/v${{ steps.trigger_inputs.outputs.version }}/|
@@ -120,7 +125,7 @@ jobs:
           }
         }' "$FORMULA_FILE"
         
-        # Update URLs and checksums for Linux x86_64 package
+        # Update URLs and checksums for Linux x86_64 package.
         sed -i '/on_linux do/,/^  end/ {
           /if Hardware::CPU.intel?/,/^      end/ {
             s|releases/download/v[^/]*/|releases/download/v${{ steps.trigger_inputs.outputs.version }}/|
@@ -128,7 +133,7 @@ jobs:
           }
         }' "$FORMULA_FILE"
         
-        # Update URLs and checksums for Linux arm64 package
+        # Update URLs and checksums for Linux arm64 package.
         sed -i '/on_linux do/,/^  end/ {
           /if Hardware::CPU.arm?/,/^      end/ {
             s|releases/download/v[^/]*/|releases/download/v${{ steps.trigger_inputs.outputs.version }}/|
@@ -136,7 +141,7 @@ jobs:
           }
         }' "$FORMULA_FILE"
         
-        # Show the diff
+        # Show the diff.
         echo "Formula changes:"
         diff -u "${FORMULA_FILE}.bak" "$FORMULA_FILE" || true
         rm "${FORMULA_FILE}.bak"
@@ -150,6 +155,9 @@ jobs:
         delete-branch: true
         title: "chore: bump ${{ steps.trigger_inputs.outputs.package_name }} to v${{ steps.trigger_inputs.outputs.version }}"
         body: |
+          :robot: I bumped a formula *beep* *boop*
+          ---
+          
           ## Automated Homebrew Formula Bump
           
           This PR updates the `${{ steps.trigger_inputs.outputs.package_name }}` formula to version `${{ steps.trigger_inputs.outputs.version }}`.
