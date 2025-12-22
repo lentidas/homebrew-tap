@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Parse inputs from trigger
-        id: trigger-inputs
+        id: trigger_inputs
         run: |
           # Detect trigger type and set inputs accordingly.
           if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
@@ -45,8 +45,8 @@ jobs:
           fi
 
       - name: Generate GitHub App token
-        id: generate-token
-        uses: actions/create-github-app-token@v1
+        id: app_token
+        uses: actions/create-github-app-token@v2.2.1
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
@@ -55,33 +55,33 @@ jobs:
       - name: Set source repository
         id: set-repo
         run: |
-          if [ -n "${{ steps.trigger-inputs.outputs.source_repo }}" ]; then
-            echo "repo=${{ steps.trigger-inputs.outputs.source_repo }}" >> $GITHUB_OUTPUT
+          if [ -n "${{ steps.trigger_inputs.outputs.source_repo }}" ]; then
+            echo "repo=${{ steps.trigger_inputs.outputs.source_repo }}" >> $GITHUB_OUTPUT
           else
-            echo "repo=lentidas/${{ steps.trigger-inputs.outputs.package_name }}" >> $GITHUB_OUTPUT
+            echo "repo=lentidas/${{ steps.trigger_inputs.outputs.package_name }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Compute checksums from binaries
         id: compute-checksums
         env:
-          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
           # Download release assets and compute checksums
           cd /tmp
           
           # Download all architecture binaries
-          gh release download "v${{ steps.trigger-inputs.outputs.version }}" \
+          gh release download "v${{ steps.trigger_inputs.outputs.version }}" \
             --repo "${{ steps.set-repo.outputs.repo }}" \
-            --pattern "${{ steps.trigger-inputs.outputs.package_name }}_Darwin_x86_64.tar.gz" \
-            --pattern "${{ steps.trigger-inputs.outputs.package_name }}_Darwin_arm64.tar.gz" \
-            --pattern "${{ steps.trigger-inputs.outputs.package_name }}_Linux_x86_64.tar.gz" \
-            --pattern "${{ steps.trigger-inputs.outputs.package_name }}_Linux_arm64.tar.gz"
+            --pattern "${{ steps.trigger_inputs.outputs.package_name }}_Darwin_x86_64.tar.gz" \
+            --pattern "${{ steps.trigger_inputs.outputs.package_name }}_Darwin_arm64.tar.gz" \
+            --pattern "${{ steps.trigger_inputs.outputs.package_name }}_Linux_x86_64.tar.gz" \
+            --pattern "${{ steps.trigger_inputs.outputs.package_name }}_Linux_arm64.tar.gz"
           
           # Compute SHA256 checksums
-          darwin_x86_64=$(sha256sum "${{ steps.trigger-inputs.outputs.package_name }}_Darwin_x86_64.tar.gz" | awk '{print $1}')
-          darwin_arm64=$(sha256sum "${{ steps.trigger-inputs.outputs.package_name }}_Darwin_arm64.tar.gz" | awk '{print $1}')
-          linux_x86_64=$(sha256sum "${{ steps.trigger-inputs.outputs.package_name }}_Linux_x86_64.tar.gz" | awk '{print $1}')
-          linux_arm64=$(sha256sum "${{ steps.trigger-inputs.outputs.package_name }}_Linux_arm64.tar.gz" | awk '{print $1}')
+          darwin_x86_64=$(sha256sum "${{ steps.trigger_inputs.outputs.package_name }}_Darwin_x86_64.tar.gz" | awk '{print $1}')
+          darwin_arm64=$(sha256sum "${{ steps.trigger_inputs.outputs.package_name }}_Darwin_arm64.tar.gz" | awk '{print $1}')
+          linux_x86_64=$(sha256sum "${{ steps.trigger_inputs.outputs.package_name }}_Linux_x86_64.tar.gz" | awk '{print $1}')
+          linux_arm64=$(sha256sum "${{ steps.trigger_inputs.outputs.package_name }}_Linux_arm64.tar.gz" | awk '{print $1}')
           
           echo "darwin_x86_64=$darwin_x86_64" >> $GITHUB_OUTPUT
           echo "darwin_arm64=$darwin_arm64" >> $GITHUB_OUTPUT
@@ -90,7 +90,7 @@ jobs:
 
       - name: Update Homebrew formula
         run: |
-          FORMULA_FILE="Formula/${{ steps.trigger-inputs.outputs.package_name }}.rb"
+          FORMULA_FILE="Formula/${{ steps.trigger_inputs.outputs.package_name }}.rb"
           
           if [ ! -f "$FORMULA_FILE" ]; then
             echo "Error: Formula file $FORMULA_FILE not found"
@@ -101,12 +101,12 @@ jobs:
           cp "$FORMULA_FILE" "${FORMULA_FILE}.bak"
           
           # Update version
-          sed -i 's/version "[^"]*"/version "${{ steps.trigger-inputs.outputs.version }}"/' "$FORMULA_FILE"
+          sed -i 's/version "[^"]*"/version "${{ steps.trigger_inputs.outputs.version }}"/' "$FORMULA_FILE"
           
           # Update URLs and checksums for Darwin x86_64 package
           sed -i '/on_macos do/,/^  end/ {
             /if Hardware::CPU.intel?/,/^    end/ {
-              s|releases/download/v[^/]*/|releases/download/v${{ steps.trigger-inputs.outputs.version }}/|
+              s|releases/download/v[^/]*/|releases/download/v${{ steps.trigger_inputs.outputs.version }}/|
               /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.compute-checksums.outputs.darwin_x86_64 }}"/
             }
           }' "$FORMULA_FILE"
@@ -114,7 +114,7 @@ jobs:
           # Update URLs and checksums for Darwin arm64 package
           sed -i '/on_macos do/,/^  end/ {
             /if Hardware::CPU.arm?/,/^    end/ {
-              s|releases/download/v[^/]*/|releases/download/v${{ steps.trigger-inputs.outputs.version }}/|
+              s|releases/download/v[^/]*/|releases/download/v${{ steps.trigger_inputs.outputs.version }}/|
               /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.compute-checksums.outputs.darwin_arm64 }}"/
             }
           }' "$FORMULA_FILE"
@@ -122,7 +122,7 @@ jobs:
           # Update URLs and checksums for Linux x86_64 package
           sed -i '/on_linux do/,/^  end/ {
             /if Hardware::CPU.intel?/,/^      end/ {
-              s|releases/download/v[^/]*/|releases/download/v${{ steps.trigger-inputs.outputs.version }}/|
+              s|releases/download/v[^/]*/|releases/download/v${{ steps.trigger_inputs.outputs.version }}/|
               /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.compute-checksums.outputs.linux_x86_64 }}"/
             }
           }' "$FORMULA_FILE"
@@ -130,7 +130,7 @@ jobs:
           # Update URLs and checksums for Linux arm64 package
           sed -i '/on_linux do/,/^  end/ {
             /if Hardware::CPU.arm?/,/^      end/ {
-              s|releases/download/v[^/]*/|releases/download/v${{ steps.trigger-inputs.outputs.version }}/|
+              s|releases/download/v[^/]*/|releases/download/v${{ steps.trigger_inputs.outputs.version }}/|
               /sha256/ s/sha256 "[^"]*"/sha256 "${{ steps.compute-checksums.outputs.linux_arm64 }}"/
             }
           }' "$FORMULA_FILE"
@@ -142,12 +142,12 @@ jobs:
 
       - name: Commit and push changes
         env:
-          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
         run: |
           # Configure git to use the GitHub App's identity
-          git config --global user.name "${{ steps.generate-token.outputs.app-slug }}[bot]"
-          git config --global user.email "${{ steps.generate-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+          git config --global user.name "${{ steps.app_token.outputs.app-slug }}[bot]"
+          git config --global user.email "${{ steps.app_token.outputs.app-slug }}[bot]@users.noreply.github.com"
           
-          git add "Formula/${{ steps.trigger-inputs.outputs.package_name }}.rb"
-          git commit -m "chore: bump ${{ steps.trigger-inputs.outputs.package_name }} to v${{ steps.trigger-inputs.outputs.version }}"
+          git add "Formula/${{ steps.trigger_inputs.outputs.package_name }}.rb"
+          git commit -m "chore: bump ${{ steps.trigger_inputs.outputs.package_name }} to v${{ steps.trigger_inputs.outputs.version }}"
           git push
