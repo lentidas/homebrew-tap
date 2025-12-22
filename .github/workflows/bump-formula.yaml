@@ -49,8 +49,8 @@ jobs:
       id: app_token
       uses: actions/create-github-app-token@v2.2.1
       with:
-        app-id: ${{ secrets.APP_ID }}
-        private-key: ${{ secrets.APP_PRIVATE_KEY }}
+        app-id: ${{ secrets.REPOSITORY_BOT_APP_ID }}
+        private-key: ${{ secrets.REPOSITORY_BOT_PRIVATE_KEY }}
         owner: ${{ github.repository_owner }}
 
     - name: Set source repository
