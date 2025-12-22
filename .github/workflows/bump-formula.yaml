@@ -140,14 +140,32 @@ jobs:
           diff -u "${FORMULA_FILE}.bak" "$FORMULA_FILE" || true
           rm "${FORMULA_FILE}.bak"
 
-      - name: Commit and push changes
-        env:
-          GH_TOKEN: ${{ steps.app_token.outputs.token }}
-        run: |
-          # Configure git to use the GitHub App's identity
-          git config --global user.name "${{ steps.app_token.outputs.app-slug }}[bot]"
-          git config --global user.email "${{ steps.app_token.outputs.app-slug }}[bot]@users.noreply.github.com"
-          
-          git add "Formula/${{ steps.trigger_inputs.outputs.package_name }}.rb"
-          git commit -m "chore: bump ${{ steps.trigger_inputs.outputs.package_name }} to v${{ steps.trigger_inputs.outputs.version }}"
-          git push
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8.0.0
+        with:
+          token: ${{ steps.app_token.outputs.token }}
+          commit-message: "chore: bump ${{ steps.trigger_inputs.outputs.package_name }} to v${{ steps.trigger_inputs.outputs.version }}"
+          branch: "bump-formula/${{ steps.trigger_inputs.outputs.package_name }}"
+          delete-branch: true
+          title: "chore: bump ${{ steps.trigger_inputs.outputs.package_name }} to v${{ steps.trigger_inputs.outputs.version }}"
+          body: |
+            ## Automated Homebrew Formula Bump
+            
+            This PR updates the `${{ steps.trigger_inputs.outputs.package_name }}` formula to version `${{ steps.trigger_inputs.outputs.version }}`.
+            
+            ### Changes
+            - Updated version to `${{ steps.trigger_inputs.outputs.version }}`
+            - Updated checksums for all architectures:
+              - Darwin x86_64: `${{ steps.compute-checksums.outputs.darwin_x86_64 }}`
+              - Darwin arm64: `${{ steps.compute-checksums.outputs.darwin_arm64 }}`
+              - Linux x86_64: `${{ steps.compute-checksums.outputs.linux_x86_64 }}`
+              - Linux arm64: `${{ steps.compute-checksums.outputs.linux_arm64 }}`
+            
+            ### Source
+            Repository: `${{ steps.set-repo.outputs.repo }}`
+            Release: `v${{ steps.trigger_inputs.outputs.version }}`
+          labels: |
+            type: chore
+            work: obvious
+            priority: soon
+            effort: 1
