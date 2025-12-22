@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Check out repository
       uses: actions/checkout@v6.0.1
 
     - name: Parse inputs from trigger
@@ -158,8 +158,6 @@ jobs:
           :robot: I bumped a formula *beep* *boop*
           ---
           
-          ## Automated Homebrew Formula Bump
-          
           This PR updates the `${{ steps.trigger_inputs.outputs.package_name }}` formula to version `${{ steps.trigger_inputs.outputs.version }}`.
           
           ### Changes
@@ -171,8 +169,8 @@ jobs:
             - Linux arm64: `${{ steps.compute-checksums.outputs.linux_arm64 }}`
           
           ### Source
-          Repository: `${{ steps.set-repo.outputs.repo }}`
-          Release: `v${{ steps.trigger_inputs.outputs.version }}`
+          - Repository: `${{ steps.set-repo.outputs.repo }}`
+          - Release: `v${{ steps.trigger_inputs.outputs.version }}`
         labels: |
           type: chore
           work: obvious
