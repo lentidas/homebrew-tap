@@ -32,55 +32,72 @@ While you may search across taps, it is necessary to always use fully qualified 
 
 ## Automated Formula Updates
 
-This repository includes a GitHub Actions workflow that automatically updates formula versions and checksums when new releases are published.
+This repository includes a GitHub Actions workflow that automatically updates formula versions and checksums when new releases are published on my other repositories.
 
-### Bump Formula Workflow
+### `bump-formula.yaml`
 
-The `bump-formula.yaml` workflow can be manually triggered to update a formula to a new version:
+The `bump-formula.yaml` workflow can be manually triggered using the GitHub interface or can be triggered from a workflow in another repository.
 
-**Inputs:**
+#### Prerequisites
+
+- A GitHub App with access to both repositories.
+- Repository secrets configured:
+  - `APP_ID` - the ID of the GitHub App
+  - `APP_PRIVATE_KEY` - the private key of the GitHub App
+
+#### Inputs
+
+The `client_payload` for the `repository_dispatch` trigger and the inputs for the `workflow_dispatch` trigger are the same:
 - `package_name` (required): The formula name without the `.rb` extension (e.g., `hledger-price-tracker`)
 - `version` (required): The new version number without the `v` prefix (e.g., `0.1.16`)
 - `source_repo` (optional): The source repository in `owner/repo` format. Defaults to `lentidas/PACKAGE_NAME`
 
-**How it works:**
-1. Authenticates using a GitHub App token to access release artifacts
-2. Downloads checksums from the release's `checksums.txt` artifact, or computes them from release binaries if the artifact is not available
+#### Workflow steps
+
+1. Authenticates using a GitHub App token to access release artifacts.
+2. Downloads the Linux and Darwin release binaries and computes the checksums from them.
 3. Updates the formula file with the new version and checksums for all supported architectures:
    - macOS Intel (x86_64)
    - macOS Apple Silicon (arm64)
    - Linux Intel (x86_64)
    - Linux ARM (arm64)
-4. Commits and pushes the changes back to the repository
+4. Commits and pushes the changes back to the repository.
 
-**Prerequisites:**
-- A GitHub App with access to both repositories
-- Repository secrets configured:
-  - `APP_ID`: The GitHub App ID
-  - `APP_PRIVATE_KEY`: The GitHub App private key
+#### Usage
 
-**Usage:**
+To trigger the workflow manually, navigate to the Actions tab in this repository, select "bump-formula-version", and click "Run workflow", providing the required inputs.
 
-To trigger the workflow manually, navigate to the Actions tab in this repository, select "Bump Formula Version", and click "Run workflow". Provide the required inputs and run the workflow.
-
-Alternatively, you can trigger it programmatically using the GitHub API or from another workflow:
+Alternatively, you can trigger it programmatically from another workflow:
 
 ```yaml
-- name: Trigger formula bump
-  uses: actions/github-script@v7
-  with:
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-    script: |
-      await github.rest.actions.createWorkflowDispatch({
-        owner: 'lentidas',
-        repo: 'homebrew-tap',
-        workflow_id: 'bump-formula.yaml',
-        ref: 'main',
-        inputs: {
-          package_name: 'hledger-price-tracker',
-          version: '0.1.16'
-        }
-      });
+# ...
+
+  notify-homebrew-tap:
+    runs-on: ubuntu-latest
+    needs: release-please
+    if: steps.release-please.outputs.releases_created
+
+    steps:
+      - name: Generate authentication token from GitHub App
+        id: app_token
+        uses: actions/create-github-app-token@v2.2.1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Dispatch Homebrew formula bump workflow
+        uses: peter-evans/repository-dispatch@v4
+        with:
+          event-type: homebrew-bump-formula
+          repository: lentidas/homebrew-tap
+          token: ${{ steps.app_token.outputs.token }}
+          client-payload: |
+            {
+              "package_name": "${{ github.repository }}",
+              "version": "${{ steps.release-please.outputs.new_version }}",
+              "source_repo": "${{ github.repository }}"
+            }
 ```
 
 ## Documentation
